@@ -1,0 +1,372 @@
+1. Скачати усі сторінки моделей для парсингу, аби сайт не обмежував доступ
+
+
+
+Питання:
+1. Для всіх сайтів один скрипт? Просто розбити по функціям?
+2. Назви змінних (незрозумілість виділена табами)
+3.
+
+
+
+
+Умови:
+    1. Містити усі зовнішні параметри в окремому файлі (обговорюються):
+        - проксі;
+        - АРІ адрес сервера:
+            * завантаження медіа на сервер S3;
+            * передача спаршених даних.
+    2. Використовувати проксі.
+
+    3. Знайти список усіх послуг на сайті (можуть мати різні типи чи категорії).
+
+    4. Із списку пункта №3 знайти та з агрегувати дані (список значень загальний, деякі значення можливо відсутні - залишати порожнім):
+
+                object_type: tinyint unsigned
+                code: tinyint unsigned
+                hash: varchar(255)
+                site_name: varchar(255)
+    url_page: varchar(255)
+    profile_type: varchar(255)
+    categories: text(Array)
+    name: varchar(255)
+    nickname: varchar(255)
+    languages: text(Array)
+    age: tinyint unsigned
+    instagram_url: varchar(255)
+    twitter_url: varchar(255)
+    onlyfans_url: varchar(255)
+    tiktok_url: varchar(255)
+    website_url: varchar(255)
+    other_social_networks: text(Array)
+    address: varchar(255)
+    region: varchar(255)
+    city: varchar(255)
+    country: varchar(255)
+    ratings: double
+    subscribe_price: double
+    subscribers_count: int unsigned
+    likes: int unsigned
+    about: text
+        media_urls: text(Array)
+                file_ids: text(Array)
+                other_data: text(Array)
+                is_update: tinyint(1)(boolean)
+                is_remove: tinyint(1)(boolean)
+                is_duplicate: tinyint(1)(boolean)
+    gender: varchar(255)
+    height: tinyint unsigned
+    body_type: varchar(255)
+    breast: varchar(255)
+    nationality: varchar(255)
+    hair_color: varchar(255)
+    hair_length: varchar(255)
+    intimate_haircut: varchar(255)
+    smoking: varchar(255)
+    drinks: varchar(255)
+    piercing: varchar(255)
+    tattoo: varchar(255)
+    travel: varchar(255)
+    sexuality: varchar(255)
+    skin_color: varchar(255)
+    eyes_color: varchar(255)
+    ethnicity: varchar(255)
+                lat: double
+                lng: double
+    email: varchar(255)
+    wa: varchar(255)
+    tg: varchar(255)
+    viber: varchar(255)
+    other_messengers: text(Array)
+    contact_phone: varchar(255)
+        services: text(Array)
+    schedule_work: text
+        place_type: varchar(255)
+        location_parking: varchar(255)
+        facilities: varchar(255)
+        food_drink: varchar(255)
+        interior: text(Array)
+        exterior: text(Array)
+    payment_methods: text(Array)
+    models_url: text(Array)
+
+    5   . Робота із медіа/файлами (API storage (S3) - дивитись нижче):
+       1. усі знайдені медіа файли, із пошуком кожної моделі, послідовно “download” до локального сховища із використанням проксі.
+       2. потім фотографію “upload” до серверу S3 вказаному в пункту №1 - у відповідь отримати “id” файлу.
+       3. роут (API) для завантаження по запиту від замовника.
+       4. отриманий параметр у відповіді на АРІ додати до json основних даних в параметр - files_id.
+
+    6. Додатково: всі дані на сторінці які мають відношення до моделі та не мають виділеного параметру в структурі - зберегти їх як масив параметрів в форматі json.
+
+    7. Надіслати агрегацію даних по АРІ (API - дивитись нижче).
+
+    8. Логувати стан парсингу за допомогою надсилання по АРІ (API - дивитись нижче)
+       - дата запуску  (date time)
+       - дата закінчення парсингу  (date time)
+       - помилка - true/false
+       - повідомлення парсингу (пошуку елементу / блокування)
+
+
+
+Proxy: **********
+API:
+    Структура АРІ:
+    API storage (S3)
+
+        Routes:
+        POST {uri}/storage/s3/image/store
+        , де uri - це домен або ip серверу.
+        Params - required:
+        source (string) - parser name or alias;
+        file (file).
+        Response 200:
+        int or null.
+        Response 400:
+        {
+
+           "data": {
+               "file": [
+                   "The file field is required."
+               ],
+               "source": [
+                   "The source field is required."
+               ]
+           }
+        }
+
+        Як працює:
+        На роут поступає запит з інформацією про соурс та файлом.
+        Якщо файл збережено на с3 - повертається id для парсеру.
+
+
+    API all data
+
+        POST {{uri}}/api/parser/v1/put-object
+        Required header: Parser-Api-Token {value}
+        Params must be Json: Example with all params - lower
+        comments - optional,
+        object - required,
+        object.object_type - required, and must be:
+        Model = 1; EscortProfile = 2; EscortPlace = 3; Rental = 4;
+        object.code - required, and must be:
+        LadiesDe = 1; ErobellaCom = 2; KaufmichCom = 3; OnlysearchCo = 4; FapelloCom = 5;
+        {
+
+           "comments": [
+
+               {
+
+                   "message": "test1",
+
+                   "level": "123"
+
+               },
+
+                       {
+
+                   "message": "test2",
+
+                   "level": "12"
+
+               },
+
+                       {
+
+                   "message": "test3",
+
+                   "level": "1"
+
+               }
+
+           ],
+
+           "object": {
+
+               "object_type": 1,
+
+               "code": 1,
+
+               "about": "Hello this example",
+
+               "address": "",
+
+               "age": 0,
+
+               "body_type": "",
+
+               "breast": "",
+
+               "categories": "",
+
+               "city": "",
+
+               "contact_phone": "",
+
+               "country": "",
+
+               "drinks": "",
+
+               "email": "",
+
+               "ethnicity": "",
+
+               "exterior": "",
+
+               "eyes_color": "",
+
+               "facilities": "",
+
+               "file_ids": "",
+
+               "food_drink": "",
+
+               "gender": "",
+
+               "hair_color": "",
+
+               "hair_length": "",
+
+               "hash": "",
+
+               "height": 0,
+
+               "instagram_url": "",
+
+               "interior": "",
+
+               "intimate_haircut": "",
+
+               "is_duplicate": 0,
+
+               "is_remove": 0,
+
+               "is_update": 0,
+
+               "languages": "",
+
+               "lat": 0,
+
+               "likes": 0,
+
+               "lng": 0,
+
+               "location_parking": "",
+
+               "media_urls": "",
+
+               "models_url": "",
+
+               "name": "",
+
+               "nationality": "",
+
+               "nickname": "",
+
+               "onlyfans_url": "",
+
+               "other_data": "",
+
+               "other_messengers": "",
+
+               "other_social_networks": "",
+
+               "payment_methods": "",
+
+               "piercing": "",
+
+               "place_type": "",
+
+               "profile_type": "",
+
+               "ratings": 0,
+
+               "region": "",
+
+               "schedule_work": "",
+
+               "services": "",
+
+               "sexuality": "",
+
+               "site_name": "",
+
+               "skin_color": "",
+
+               "smoking": "",
+
+               "subscribe_price": 0,
+
+               "subscribers_count": 0,
+
+               "tattoo": "",
+
+               "tg": "",
+
+               "tiktok_url": "",
+
+               "travel": "",
+
+               "twitter_url": "",
+
+               "url_page": "",
+
+               "viber": "",
+
+               "wa": "",
+
+               "website_url": ""
+
+           }
+
+        }
+
+
+
+    API log
+
+        POST {{uri}}/api/parser/v1/put-log
+        Required header: Parser-Api-Token {value}
+        Params:
+        required
+        optional
+        errors (string, text)
+
+        site_name (string, max:255)
+
+        date_start (string, format: Y-m-d H:i:s)
+
+        date_end (string, format: Y-m-d H:i:s, after_or_equal:date_start)
+
+
+        Responses:
+        Happy way:
+        Status: 201
+        Body: 'ok'
+        Bad way:
+        Status: 422
+        Body for example:
+        {
+
+           "data": {
+
+               "site_name": [
+
+                   "The site name field must be a string."
+
+               ],
+
+               "date_start": [
+
+                   "The date start field must match the format Y-m-d H:i:s."
+
+               ],
+
+               "date_end": [
+
+                   "The date end field must be a date after or equal to date start."
+
+               ]
+
+           }
+
+        }
