@@ -28,16 +28,12 @@ def get_erobella_data(url_search_models):
     # print(all_urls_on_page)
 
     soup = BeautifulSoup(source_html, "lxml")
-    all_urls_on_page = soup.find_all("div", class_="row profile-block-wrap profile-block-wrap--main")
-    print(all_urls_on_page)
+    all_urls_on_page = soup.find_all("div", class_="profile-block")
 
-    counter = 0
-
+    urls_page = []
     for url in all_urls_on_page:
-        url_page = "https://erobella.com" + url.find("div", class_="profile-block").find("a").get("href")
-        counter += 1
-        print(url_page)
-        print(counter)
+        url_page = "https://erobella.com" + url.find("a", class_="profile-block-link")["href"]
+        urls_page.append(url_page)
 
 
 get_erobella_data("https://erobella.com/sex/#?gender=Weiblich&search_radius=0km")
