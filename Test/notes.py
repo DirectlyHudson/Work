@@ -96,3 +96,11 @@
 
                     # find_all_clothes = soup.find_all(text=re.compile("([Оо]дежда)"))
                     # print(find_all_clothes)
+
+'''
+variables and used names
+
+headers - user-client
+page_allmodels - html as var into source_html
+urls_page - list of all urls on a page
+'''
